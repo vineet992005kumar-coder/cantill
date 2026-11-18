@@ -1,0 +1,39 @@
+# Company B: metal packaging manufacturer, 8 ERPs (JDE/SAP), 25 currencies, vendor IDs only. Reporting currency USD.
+company: B
+reporting_currency: USD
+taxonomy: {file: taxonomy_B.csv, levels: [category_l1, category_l2, category_l3]}
+seed_labels: {file: seed_labels.csv, id_col: line_id, level_cols: [category_l1, category_l2, category_l3]}
+mode: one_system
+
+sources:
+  - name: ap
+    role: primary
+    file: invoice_lines.csv
+    id_col: line_id
+    id_prefix: ""
+    columns:
+      date: posting_date          # invoice_date is broken in places (e.g. 2018 on a 2024 posting)
+      amount: line_amount
+      currency: currency
+      rate: currency_rate         # units of line currency per 1 USD
+      supplier: vendor_id         # no supplier names, only IDs
+      vendor_id: vendor_id
+      po: po_number
+      po_item: po_line
+      quantity: quantity
+      invoice: invoice_number
+      item_code: material_number
+    description: [line_description]
+    extra: [gl_account_description, gl_account, supplier_type, document_type, po_type, source_system, plant, cost_centre]
+    amount_is_gross: false
+
+fx: {file: fx_rates_usd.csv, currency_col: currency, month_col: month, rate_col: units_per_usd}
+suppliers: {fuzzy: false}
+
+# learned from the 3,000 analyst seed labels (see DECISIONS.md)
+non_procurement_rules:
+  - {column: gl_account_description, regex: '^(I/C Payable|IC Payables?|IC\d+)$'}
+  - {column: supplier_type, regex: '^(5406|2742|\s+)$'}
+  - {column: desc, regex: '\b(taxes|tax expense|input tax|sales tax|gst)\b'}
+  - {column: desc, regex: '^sl-\d{5}-\d{4}-\d{4}-'}
+use_default_keyword_rules: true

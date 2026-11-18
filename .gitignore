@@ -1,0 +1,10 @@
+# Task data is confidential: never commit it
+data/
+*.csv
+!configs/*.csv
+!submission/*.csv
+!output/*__A.csv
+!output/*__B.csv
+__pycache__/
+.cache/
+.DS_Store

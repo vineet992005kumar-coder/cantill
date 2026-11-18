@@ -1,0 +1,65 @@
+# Company A: mining operations, two systems (ERP goods receipts + AP-tool invoices). Reporting currency ZAR.
+company: A
+reporting_currency: ZAR
+taxonomy: {file: taxonomy_A.csv, levels: [category_l1, category_l2, category_l3]}
+labels: {file: labels_A.csv, id_col: record_id, level_cols: [category_l1, category_l2, category_l3], supplier_col: supplier_key, item_col: item_key}
+mode: two_system        # one_system | two_system
+
+sources:
+  - name: erp
+    role: primary
+    file: erp_goods_receipts.csv
+    id_col: line_id
+    id_prefix: "ERP:"
+    columns:
+      date: posting_date
+      amount: value_zar
+      currency: document_currency
+      supplier: supplier_name
+      vendor_id: vendor_id
+      po: po_number
+      po_item: po_item
+      quantity: quantity
+      item_code: material_number
+    description: [material_short_text, service_short_text]
+    extra: [spend_type, material_type, opex_capex, site_name, cost_centre]
+    amount_is_gross: false
+  - name: tool
+    role: secondary
+    file: invoice_tool_export.csv
+    id_col: tool_record_id
+    id_prefix: "TOOL:"
+    columns:
+      date: invoice_date
+      amount: gross_amount
+      currency: currency
+      supplier: supplier_name_as_captured
+      po: po_reference
+      quantity: quantity
+      invoice: invoice_number
+      status: status
+      vat: vat_rate
+    description: [line_text]
+    amount_is_gross: true
+    default_vat: 0.15
+
+status:
+  approved: [Approved, Paid]
+  cancelled: [Cancelled]          # anything else not approved -> NOT_APPROVED
+
+matching:
+  amount_tol_abs: 0.05
+  amount_tol_rel: 0.02
+  text_sim_min: 0.35
+
+# extra non-procurement rules (regex, case-insensitive) on any column of the standardised frame
+non_procurement_rules: []
+use_default_keyword_rules: true
+
+# learned from labels_A (see DECISIONS.md): client's supplier/item master conventions
+suppliers: {pool_unmastered: true}
+items:
+  column: spend_type
+  by_code: [Material]
+  by_description: [Service]
+  pooled: [Catalogue, Free Text]
