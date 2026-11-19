@@ -1,0 +1,32 @@
+# Company C: oil & gas operator, 25k invoice lines, USD, supplier names, no labels.
+company: C
+reporting_currency: USD
+taxonomy:
+  file: category_tree_C.csv
+  levels: [level_1, level_2, level_3, level_4]
+mode: one_system
+sources:
+- name: inv
+  role: primary
+  file: invoice_lines.csv
+  id_col: line_id
+  id_prefix: ''
+  columns:
+    date: invoice_date
+    amount: line_amount_usd
+    supplier: supplier_name
+    status: status
+    invoice: invoice_number
+    quantity: quantity
+    item_code: product_service_code
+  description:
+  - line_description
+  - product_service_description
+  - invoice_description
+  extra: [gl_account_description, buyer_entity, submission_type, uom]
+  amount_is_gross: false
+status:
+  approved:
+  - Approved
+  cancelled:
+  - Cancelled
